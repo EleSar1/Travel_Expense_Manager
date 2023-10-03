@@ -1,95 +1,128 @@
-#function that compute the total charge for each category
-def compute_category_total_expense(categories):
-    total_for_category = []
-    for category in categories:
-        total_for_category.append(sum(categories[category]))
-    return total_for_category
+def take_input():
+  
+  """take in input the number of days and user's budget for their own travel.
+  If variables are equal to 0 or negative, this function print an error and ask again for user's data"""
+  
+  num_days = int(input("How many days do you want to travel? "))
+  while num_days <= 0:
+    print("Error. Not valid value.")
+    num_days = int(input("How many days do you want to travel? "))
+
+  tot_budget = float(input("What's your total budget? €"))
+  while tot_budget <= 0:
+    print('Error. Negative or too low budget.')
+    tot_budget = float(input("What's your total budget? "))
+    
+  return num_days, tot_budget
 
 
-def categories_ls():
-    category_list = ['lodging', 'transportation', 'meals', 'entertainment']
-    return category_list
+def all_categories():
 
-#print the total for each category computed by function 'compute_category_total_expense'
-def print_total_for_category(categories):
-    total_for_category = compute_category_total_expense(categories)
-    category_list = categories_ls()
-    index = 0
-    for total_for_category_index in range(0, len(total_for_category)):
-        print(f'Your {category_list[index]} total charge is: €{total_for_category[total_for_category_index]}')
-        index += 1
-
-
-def grand_total(categories):
-    grandtotal = float(sum(compute_category_total_expense(categories)))
-    return grandtotal
-
-#if user want to change a single charge in a category, this function compute the new total 
-def update(categories, category_to_change, day_to_change):
-    new_total = []
-    for find_day in range(0, len(categories[category_to_change])):
-        if day_to_change == find_day + 1:
-            categories[category_to_change][day_to_change - 1] = 0
-            categories[category_to_change][day_to_change - 1] += new_charge
-            new_total = compute_category_total_expense(categories)
-    return new_total
+  """generate a dictionary that store the all categories' name 
+  and return it"""
+  
+  categories_dict = {
+    1: ['lodging'],
+    2: ['transportation'],
+    3: ['meals'],
+    4: ['entertainment']
+  }
+  return categories_dict
 
 
-days = int(input('How many days do you want to stay? '))
-while days <= 0:
-    print('Incorrect value or trip too short.')
-    days = int(input('How many days do you want to stay? '))
-
-budget = float(input('Enter your total budget:  €'))
-while budget <= 0:
-    print('Incorrect value. Please enter a positive number.')
-    budget = float(input('Enter your total budget:  €'))
-
-categories = {'lodging': [],
-              'transportation': [],
-              'meals': [],
-              'entertainment': []
-              }
-
-for day in range(1, days + 1):
-    print(f'Day {day}: ')
-    for category in categories:
-        expense = float(input(f'Enter your {category} expenses for this day: '))
-        categories[category].append(expense)
-
-compute_category_total_expense(categories)
-print_total_for_category(categories)
-print(f'Your grandtotal is: {grand_total(categories)}')
-
-change = str(input('Do you want to make any change? (yes/no) ')).lower()
-while change == 'yes':
-    category_to_change = str(input('Which category do you want to change? (lodging/transportation/meals/entertainment) ')).lower()
-    if category_to_change in categories.keys():
-        day_to_change = int(input('Enter the day: '))
-        if day_to_change > days or day_to_change <= 0:
-            print('Error. Incorrect day.')
-        else:
-            new_charge = float(input('Enter your new charge: '))
-            while new_charge < 0:
-                print('You cannot enter a negative number.')
-                new_charge = float(input('Enter your new charge: '))
-            update(categories, category_to_change, day_to_change)
-            change = str(input('Do you want to continue? (yes/no) '))
-            global total_update_global
-            total_update_global = update(categories, category_to_change, day_to_change)
-    else:
-        print('Category not found.')
-        change = str(input('Do you want to continue? (yes/no) '))
+def updated_daily_expense(categories_dict, num_days):
+  """take in input the user's daily expenses for any category and return an updated dictionary with all daily expenses"""
+  
+  for day in range(1, num_days + 1):
+    print(f'\nDay {day} of {num_days}: ')
+    for category in categories_dict:
+      expense = float(input(f'Your daily {categories_dict[category][0]} expense: €'))
+      categories_dict[category].append(expense)
+  return categories_dict
 
 
-category_ls = categories_ls()
-index = 0
-for total_update_index in range(0, len(total_update_global)):
-    print(f'Your new {category_ls[index]} total charge is: €{total_update_global[total_update_index]}')
-    index += 1
+def total_for_category(expense_for_category):
 
-grand_total = float(sum(total_update_global))
-print(f'Your new grand total is: €{grand_total}')
+  """compute the total charge for any category and store it in a list"""
 
-if grand_total > budget:
-    print('You exceed your budget. Pay attention.')
+  total_for_cat = []
+  for category in expense_for_category: 
+    total_for_cat.append(sum(expense_for_category[category][1:]))  #from index one for any key, sum all categories daily expenses and append to a list
+  return total_for_cat
+
+
+def compute_grand_total(total_category):
+  
+  """sum all elements contained in total_category"""
+
+  grand_total = sum(total_category)
+  return grand_total
+
+
+def print_total(total_category, categories_dict):
+  
+  grand_total = compute_grand_total(total_category)
+  print('\n')
+  for cat_key in categories_dict:
+    print(f'Your total charge for {categories_dict[cat_key][0]}: €{total_category[cat_key - 1]}')
+  print(f'\nGrandtotal is: €{grand_total}')
+
+
+def change_choice(categories_dict, num_days, expense_for_category): 
+  
+  """Allow user to change previous data.
+  Then it assign the new value to a variable called 'new_total' and return it"""
+
+  change = input('\nDo you want to make any change? (yes/no) ').lower()
+  if change != 'yes':
+    print('Exiting . . .')
+    return None
+  
+  key = 1     #Starts from key 1 then iterate through categories_dict
+  new_total = 0
+  while change == 'yes':
+    cat_to_change = input('Which category you want to change (lodging/transportation/meals/entertainment) ').lower()
+    while cat_to_change != categories_dict[key][0]:
+      key += 1
+
+    if cat_to_change == categories_dict[key][0]:
+      day_to_change = int(input(f'Enter the day (total days: {num_days}): '))
+      while day_to_change < 1 or day_to_change > num_days:
+        print('Days out of range.')
+        day_to_change = int(input(f'Enter the day (total days: {num_days}): '))
+      new_charge = float(input('Enter the new charge: '))
+      while new_charge < 0:
+        print('Error. New charge cannot be less than 0.')
+        new_charge = float(input('Enter the new charge: '))
+      expense_for_category[key][day_to_change] = new_charge   
+      new_total = total_for_category(expense_for_category)
+    change = input('\nDo you want to continue? (yes/no) ')
+  return new_total
+
+
+def check_budget(total_category, tot_budget):
+  
+  """check if user exceeded the budget or stayed within it and print an appropriate message"""
+
+  grand_total = compute_grand_total(total_category)
+  if grand_total <= tot_budget:
+    print('\nYou stayed in your budget!')
+  else:
+    print('\nYour expenses exceed your budget. Pay attention.')
+  
+ 
+def main():
+  num_days, tot_budget = take_input()
+  categories_dict = all_categories()
+  expense_for_category = updated_daily_expense(categories_dict, num_days)
+  total_category = total_for_category(expense_for_category)
+  print_total(total_category, categories_dict)
+  check_budget(total_category, tot_budget)
+  total_category = change_choice(categories_dict, num_days, expense_for_category)
+  if total_category != None:
+    print_total(total_category, categories_dict)
+    check_budget(total_category, tot_budget)
+
+
+if __name__ == '__main__':
+  main()
